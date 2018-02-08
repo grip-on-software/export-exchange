@@ -1,0 +1,13 @@
+[upload]
+server = $UPLOAD_SERVER
+verify = $UPLOAD_VERIFY
+auth = $UPLOAD_AUTH
+keyring = $UPLOAD_KEYRING
+username = $UPLOAD_USERNAME
+password = $UPLOAD_PASSWORD
+engine = $UPLOAD_ENGINE
+home_dir = $UPLOAD_HOME_DIR
+server_key = $UPLOAD_SERVER_KEY
+name = $UPLOAD_NAME
+email = $UPLOAD_EMAIL
+passphrase = $UPLOAD_PASSPHRASE
