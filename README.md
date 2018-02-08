@@ -5,10 +5,11 @@ encryption and authenticated key exchanges.
 
 A working version of the [GPG 
 exchange](https://github.com/lhelwerd/gpg-exchange) library is required. Follow 
-the instructions there to install the GPG dependencies and the use the 
-following command:
+the instructions there to install the GPG dependencies.
 
-`pip install gpg_exchange'
+Then install all PYthon dependencies using the following command:
+
+`pip install -r requirements.txt`
 
 # Running
 
