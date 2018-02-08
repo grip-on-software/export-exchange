@@ -4,8 +4,6 @@ Secure PGP file upload.
 
 import argparse
 import configparser
-import io
-import json
 import os
 import tempfile
 import gpg
@@ -32,7 +30,8 @@ class Uploader(object):
 
         self._session = requests.Session()
         self._session.verify = self.args.verify
-        if self.args.auth: # has_value
+
+        if self.args.auth in self.AUTH_CLASSES:
             if self.args.keyring:
                 password = keyring.get_password(self.args.keyring,
                                                 self.args.username)
@@ -43,10 +42,11 @@ class Uploader(object):
             self._session.auth = auth(self.args.username, password)
 
     def _get_passphrase(self, hint, desc, prev_bad, hook=None):
+        # pylint: disable=unused-argument
         if self.args.keyring:
             return keyring.get_password(self.args.keyring, 'privkey')
-        else:
-            return self.args.passphrase
+
+        return self.args.passphrase
 
     def run(self):
         """
@@ -55,7 +55,7 @@ class Uploader(object):
 
         try:
             # Check if we have our own key and the public key for the server
-            own_key = self._gpg.find_key(self.args.name)
+            self._gpg.find_key(self.args.name)
             server_key = self._gpg.find_key(self.args.server_key)
         except KeyError:
             print "Exchanging keys..."
@@ -77,15 +77,10 @@ class Uploader(object):
             key = self._gpg.find_key(self.args.name)
             fpr = key.fpr
         except KeyError:
-            print "Generating new key"
-            print self._gpg._gpg.protocol
-            print [info.__dict__ for info in self._gpg._gpg.get_engine_info()]
             key = self._gpg.generate_key(self.args.name, self.args.email,
                                          comment="GROS upload key",
                                          passphrase=self.args.passphrase)
             fpr = key.fpr
-
-        print "Our key: {}".format(fpr)
 
         with gpg.Data() as pubkey:
             pubkey = self._gpg.export_key(fpr)
@@ -101,7 +96,6 @@ class Uploader(object):
         except (requests.exceptions.HTTPError, ValueError) as error:
             raise RuntimeError("Invalid response: {}\n{}".format(error, response.text))
 
-        print data['pubkey']
         try:
             # Decrypt the encrypted message to import the server's public key.
             # Do not verify the signature since we don't have it currently.
@@ -146,8 +140,14 @@ class Uploader(object):
             raise RuntimeError("Server does not indicate success: {}".format(data))
 
 def parse_args(config):
+    """
+    Parse command line arguments
+    """
+
     verify = config.get('upload', 'verify')
-    if verify == 'false':
+    if verify == 'true':
+        verify = True
+    elif verify == 'false' or verify == '':
         verify = False
 
     parser = argparse.ArgumentParser(description='Upload files securely')
@@ -195,8 +195,13 @@ def main():
     Main entry point.
     """
 
+    if 'GATHERER_SETTINGS_FILE' in os.environ:
+        config_file = os.environ['GATHERER_SETTINGS_FILE']
+    else:
+        config_file = 'settings.cfg'
+
     config = configparser.RawConfigParser()
-    config.read('settings.cfg')
+    config.read(config_file)
     args = parse_args(config)
 
     uploader = Uploader(args)
