@@ -8,7 +8,10 @@ import os
 import tempfile
 import gpg
 from gpg_exchange import Exchange
-import keyring
+try:
+    import keyring
+except ImportError:
+    keyring = None
 import requests
 from requests.auth import HTTPBasicAuth, HTTPDigestAuth
 
@@ -32,7 +35,7 @@ class Uploader(object):
         self._session.verify = self.args.verify
 
         if self.args.auth in self.AUTH_CLASSES:
-            if self.args.keyring:
+            if keyring and self.args.keyring:
                 password = keyring.get_password(self.args.keyring,
                                                 self.args.username)
             else:
@@ -43,7 +46,7 @@ class Uploader(object):
 
     def _get_passphrase(self, hint, desc, prev_bad, hook=None):
         # pylint: disable=unused-argument
-        if self.args.keyring:
+        if keyring and self.args.keyring:
             return keyring.get_password(self.args.keyring, 'privkey')
 
         return self.args.passphrase
