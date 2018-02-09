@@ -24,6 +24,7 @@ pipeline {
             agent {
                 docker {
                     image '$DOCKER_REGISTRY/gros-export-exchange'
+                    args '-v $HOME/.gnupg:/home/agent/.gnupg'
                     reuseNode true
                 }
             }
