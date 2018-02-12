@@ -1,6 +1,10 @@
 pipeline {
     agent { label 'docker' }
 
+    environment {
+        MONETDB_IMPORT_GIT=credentials('monetdb-import-git')
+        MONETDB_EXPORT_DB=credentials('monetdb-export-db')
+    }
     options {
         buildDiscarder(logRotator(numToKeepStr: '10'))
     }
@@ -20,7 +24,23 @@ pipeline {
                 sh 'docker push $DOCKER_REGISTRY/gros-export-exchange:latest'
             }
         }
+        stage('Dump') {
+            steps {
+                dir('export') {
+                    copyArtifacts fingerprintArtifacts: true, projectName: 'build-monetdb-dumper/master', selector: lastSuccessful()
+                    git url: env.MONETDB_IMPORT_GIT, credentialsId: 'gitlab-clone-auth', branch: 'master', changelog: false, poll: false
+                    dir('dump') {
+                        withCredentials([file(credentialsId: 'monetdb-auth', variable: 'DOTMONETDBFILE')]) {
+                            sh '../Scripts/dump_tables.sh -h $MONETDB_EXPORT_DB -p ../dist/databasedumper.jar -d databasedumper.encrypted=true -o .'
+                        }
+                    }
+                    sh 'tar czf dump.tar.gz dump/'
+                    sh 'rm -rf dump/'
+                }
+            }
+        }
         stage('Upload') {
+            when { branch 'master' }
             agent {
                 docker {
                     image '$DOCKER_REGISTRY/gros-export-exchange'
@@ -29,9 +49,8 @@ pipeline {
                 }
             }
             steps {
-                sh 'echo Test > message.txt'
                 withCredentials([file(credentialsId: 'exchange-config', variable: 'GATHERER_SETTINGS_FILE')]) {
-                    sh 'python upload.py --files message.txt'
+                    sh 'python upload.py --files export/dump.tar.gz'
                 }
             }
         }
