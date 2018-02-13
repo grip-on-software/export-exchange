@@ -20,6 +20,9 @@ class Uploader(object):
     Client for the secure PGP file upload.
     """
 
+    PGP_ARMOR_MIME = "application/pgp-encrypted"
+    PGP_BINARY_MIME = "application/x-pgp-encrypted-binary"
+
     AUTH_CLASSES = {
         'basic': HTTPBasicAuth,
         'digest': HTTPDigestAuth
@@ -122,15 +125,17 @@ class Uploader(object):
         encrypting them with the server public key object `server_key`.
         """
 
+        file_field = "files"
         files = []
         for filename in filenames:
             with open(filename) as plaintext:
                 upload_file = tempfile.TemporaryFile()
                 self._gpg.encrypt_file(plaintext, upload_file, server_key,
-                                       always_trust=True)
+                                       always_trust=True, armor=False)
 
                 upload_file.seek(0, os.SEEK_SET)
-                files.append(("files", (filename, upload_file)))
+                files.append((file_field,
+                              (filename, upload_file, self.PGP_BINARY_MIME)))
 
         response = self._session.post(self.args.server + "/upload", files=files)
         try:
