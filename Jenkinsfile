@@ -49,7 +49,7 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('SonarQube') {
-                    withPythonEnv('System-CPython-3') {
+                    withPythonEnv('System-CPython-2.7') {
                         pysh 'python -m pip install pylint'
                         pysh 'sed -i "1s|.*|#!/usr/bin/env python|" `which pylint`'
                         pysh '${SCANNER_HOME}/bin/sonar-scanner -Dsonar.branch=$BRANCH_NAME -Dsonar.python.pylint=`which pylint`'
@@ -95,7 +95,7 @@ pipeline {
             }
             steps {
                 withCredentials([file(credentialsId: 'exchange-config', variable: 'GATHERER_SETTINGS_FILE')]) {
-                    sh 'python upload.py --files export/dump.tar.gz'
+                    sh 'python exchange/upload.py --files export/dump.tar.gz'
                 }
             }
         }
