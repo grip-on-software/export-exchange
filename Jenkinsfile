@@ -4,6 +4,7 @@ pipeline {
     environment {
         MONETDB_IMPORT_GIT=credentials('monetdb-import-git')
         MONETDB_EXPORT_DB=credentials('monetdb-export-db')
+        SCANNER_HOME = tool name: 'SonarQube Scanner 3', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
     }
     options {
         gitLabConnection('gitlab')
@@ -45,7 +46,23 @@ pipeline {
                 sh 'docker push $DOCKER_REGISTRY/gros-export-exchange:latest'
             }
         }
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    withPythonEnv('System-CPython-3') {
+                        pysh 'python -m pip install pylint'
+                        pysh 'sed -i "1s|.*|#!/usr/bin/env python|" `which pylint`'
+                        pysh '${SCANNER_HOME}/bin/sonar-scanner -Dsonar.branch=$BRANCH_NAME -Dsonar.python.pylint=`which pylint`'
+                    }
+                }
+            }
+        }
         stage('Dump') {
+            when {
+                expression {
+                    currentBuild.rawBuild.getCause(hudson.triggers.TimerTrigger$TimerTriggerCause) != null
+                }
+            }
             steps {
                 copyArtifacts fingerprintArtifacts: true, projectName: 'build-monetdb-dumper/master', selector: lastSuccessful()
                 dir('export') {
@@ -61,7 +78,14 @@ pipeline {
             }
         }
         stage('Upload') {
-            when { branch 'master' }
+            when {
+                allOf {
+                    branch 'master'
+                    expression {
+                        currentBuild.rawBuild.getCause(hudson.triggers.TimerTrigger$TimerTriggerCause) != null
+                    }
+                }
+            }
             agent {
                 docker {
                     image '$DOCKER_REGISTRY/gros-export-exchange'
