@@ -7,7 +7,8 @@ RUN addgroup agent && adduser -s /bin/bash -D -G agent agent && \
 	pip install -r /tmp/requirements.txt && \
 	apk del gcc musl-dev openssl-dev && rm -rf /var/cache/apk/* /tmp/ /root/.cache
 
-COPY upload.py /home/agent/
+RUN mkdir /home/agent/exchange
+COPY exchange/upload.py /home/agent/exchange
 
 VOLUME /home/agent/.gnupg
 VOLUME /home/agent/upload
