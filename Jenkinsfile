@@ -84,6 +84,7 @@ pipeline {
                     expression {
                         currentBuild.rawBuild.getCause(hudson.triggers.TimerTrigger$TimerTriggerCause) != null
                     }
+                    environment name: 'EXCHANGE_ENABLE', value: '1'
                 }
             }
             agent {
