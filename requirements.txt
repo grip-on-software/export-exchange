@@ -1,3 +1,2 @@
-configparser
 gpg_exchange>=0.0.5
 requests

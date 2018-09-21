@@ -64,11 +64,11 @@ class Uploader(object):
             self._gpg.find_key(self.args.name)
             server_key = self._gpg.find_key(self.args.server_key)
         except KeyError:
-            print "Exchanging keys..."
+            print("Exchanging keys...")
             server_key = self.exchange()
 
-        print "Server key: {}".format(server_key.fpr)
-        print "Uploading to server..."
+        print("Server key: {}".format(server_key.fpr))
+        print("Uploading to server...")
         self.upload(server_key, self.args.files)
 
         self._gpg = None
@@ -155,7 +155,7 @@ def parse_args(config):
     verify = config.get('upload', 'verify')
     if verify == 'true':
         verify = True
-    elif verify == 'false' or verify == '':
+    elif verify in ('false', ''):
         verify = False
 
     parser = argparse.ArgumentParser(description='Upload files securely')
