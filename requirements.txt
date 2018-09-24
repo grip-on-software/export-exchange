@@ -1,2 +1,2 @@
-gpg_exchange>=0.0.5
+gpg_exchange>=0.0.6
 requests
