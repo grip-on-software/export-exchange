@@ -64,9 +64,13 @@ pipeline {
         stage('Dump') {
             when {
                 anyOf {
-                    environment name: 'CREATE_DUMP', value: true
-                    expression {
-                        currentBuild.rawBuild.getCause(hudson.triggers.TimerTrigger$TimerTriggerCause) != null
+                    environment name: 'CREATE_DUMP', value: 'true'
+                    allOf {
+                        branch 'master'
+                        expression {
+                            currentBuild.rawBuild.getCause(hudson.triggers.TimerTrigger$TimerTriggerCause) != null
+                        }
+                        environment name: 'EXCHANGE_ENABLE', value: '1'
                     }
                 }
             }
@@ -87,7 +91,7 @@ pipeline {
         stage('Upload') {
             when {
                 anyOf {
-                    environment name: 'EXCHANGE_DUMP', value: true
+                    environment name: 'EXCHANGE_DUMP', value: 'true'
                     allOf {
                         branch 'master'
                         expression {
