@@ -6,6 +6,10 @@ pipeline {
         MONETDB_EXPORT_DB=credentials('monetdb-export-db')
         SCANNER_HOME = tool name: 'SonarQube Scanner 3', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
     }
+    parameters {
+        booleanParam(name: 'CREATE_DUMP', defaultValue: false, description: 'Create a dump regardless of timers')
+        booleanParam(name: 'EXCHANGE_DUMP', defaultValue: false, description: 'Export the dump regardless of timers or branches')
+    }
     options {
         gitLabConnection('gitlab')
         buildDiscarder(logRotator(numToKeepStr: '10'))
@@ -59,8 +63,11 @@ pipeline {
         }
         stage('Dump') {
             when {
-                expression {
-                    currentBuild.rawBuild.getCause(hudson.triggers.TimerTrigger$TimerTriggerCause) != null
+                anyOf {
+                    environment name: 'CREATE_DUMP', value: true
+                    expression {
+                        currentBuild.rawBuild.getCause(hudson.triggers.TimerTrigger$TimerTriggerCause) != null
+                    }
                 }
             }
             steps {
@@ -79,12 +86,15 @@ pipeline {
         }
         stage('Upload') {
             when {
-                allOf {
-                    branch 'master'
-                    expression {
-                        currentBuild.rawBuild.getCause(hudson.triggers.TimerTrigger$TimerTriggerCause) != null
+                anyOf {
+                    environment name: 'EXCHANGE_DUMP', value: true
+                    allOf {
+                        branch 'master'
+                        expression {
+                            currentBuild.rawBuild.getCause(hudson.triggers.TimerTrigger$TimerTriggerCause) != null
+                        }
+                        environment name: 'EXCHANGE_ENABLE', value: '1'
                     }
-                    environment name: 'EXCHANGE_ENABLE', value: '1'
                 }
             }
             agent {
