@@ -79,6 +79,13 @@ pipeline {
                 dir('export') {
                     git url: env.MONETDB_IMPORT_GIT, credentialsId: 'gitlab-clone-auth', branch: 'master', changelog: false, poll: false
                     dir('dump') {
+                        withPythonEnv('System-CPython-3') {
+                            withCredentials([file(credentialsId: 'monetdb-import-settings', variable: 'VALIDATE_SETTINGS')]) {
+                                pysh 'python -m pip install -r ../Scripts/requirements.txt'
+                                pysh script: 'cp $VALIDATE_SETTINGS settings.cfg && python ../Scripts/validate_schema.py --log WARNING --export --path ../Scripts/create-tables.sql', returnStatus: true
+                                sh 'rm -f settings.cfg'
+                            }
+                        }
                         withCredentials([file(credentialsId: 'monetdb-auth', variable: 'DOTMONETDBFILE')]) {
                             sh '../Scripts/dump_tables.sh -h $MONETDB_EXPORT_DB -p ../../dist/databasedumper.jar -d databasedumper.encrypted=true -s project_salt -o .'
                         }
