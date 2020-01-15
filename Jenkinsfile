@@ -56,7 +56,7 @@ pipeline {
                     withPythonEnv('System-CPython-3') {
                         pysh 'python -m pip install pylint'
                         pysh 'sed -i "1s|.*|#!/usr/bin/env python|" `which pylint`'
-                        pysh '${SCANNER_HOME}/bin/sonar-scanner -Dsonar.branch=$BRANCH_NAME -Dsonar.python.pylint=`which pylint`'
+                        pysh '${SCANNER_HOME}/bin/sonar-scanner -Dsonar.projectKey=export-exchange:$BRANCH_NAME -Dsonar.projectName="Export exchange $BRANCH_NAME" -Dsonar.python.pylint=`which pylint`'
                     }
                 }
             }
