@@ -2,8 +2,8 @@ pipeline {
     agent { label 'docker' }
 
     environment {
-        MONETDB_IMPORT_GIT=credentials('monetdb-import-git')
-        MONETDB_EXPORT_DB=credentials('monetdb-export-db')
+        MONETDB_IMPORT_GIT = credentials('monetdb-import-git')
+        MONETDB_EXPORT_DB = credentials('monetdb-export-db')
         SCANNER_HOME = tool name: 'SonarQube Scanner 3', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
     }
     parameters {
@@ -110,7 +110,7 @@ pipeline {
             }
             agent {
                 docker {
-                    image '$DOCKER_REGISTRY/gros-export-exchange'
+                    image "${env.DOCKER_REGISTRY}/gros-export-exchange"
                     args '-v $HOME/.gnupg:/home/agent/.gnupg'
                     reuseNode true
                 }
