@@ -1,5 +1,20 @@
 """
 Secure PGP file upload.
+
+Copyright 2017-2020 ICTU
+Copyright 2017-2022 Leiden University
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 import argparse
@@ -15,7 +30,7 @@ except ImportError:
 import requests
 from requests.auth import HTTPBasicAuth, HTTPDigestAuth
 
-class Uploader(object):
+class Uploader:
     """
     Client for the secure PGP file upload.
     """
@@ -67,7 +82,7 @@ class Uploader(object):
             print("Exchanging keys...")
             server_key = self.exchange()
 
-        print("Server key: {}".format(server_key.fpr))
+        print(f"Server key: {server_key.fpr}")
         print("Uploading to server...")
         self.upload(server_key, self.args.files)
 
@@ -94,13 +109,13 @@ class Uploader(object):
                 'pubkey': pubkey
             }
 
-        response = self._session.post(self.args.server + "/exchange", json=data)
+        response = self._session.post(f"{self.args.server}/exchange", json=data)
 
         try:
             response.raise_for_status()
             data = response.json()
         except (requests.exceptions.HTTPError, ValueError) as error:
-            raise RuntimeError("Invalid response: {}\n{}".format(error, response.text))
+            raise RuntimeError(f"Invalid response: {response.text}") from error
 
         try:
             # Decrypt the encrypted message to import the server's public key.
@@ -109,13 +124,13 @@ class Uploader(object):
                                                 verify=False)
             key, result = self._gpg.import_key(server_key)
         except (gpg.errors.GpgError, ValueError) as error:
-            raise ValueError('Data could not be decrypted: {}'.format(str(error)))
+            raise ValueError('Data could not be decrypted') from error
 
         if result.imported != 1:
             raise RuntimeError("Invalid public key from server")
 
         if key.fpr != self.args.server_key:
-            raise RuntimeError("Received incorrect key: {}".format(key.fpr))
+            raise RuntimeError(f"Received incorrect key: {key.fpr}")
 
         return key
 
@@ -128,7 +143,7 @@ class Uploader(object):
         file_field = "files"
         files = []
         for filename in filenames:
-            with open(filename) as plaintext:
+            with open(filename, 'rb') as plaintext:
                 upload_file = tempfile.TemporaryFile()
                 self._gpg.encrypt_file(plaintext, upload_file, server_key,
                                        always_trust=True, armor=False)
@@ -137,15 +152,15 @@ class Uploader(object):
                 files.append((file_field,
                               (filename, upload_file, self.PGP_BINARY_MIME)))
 
-        response = self._session.post(self.args.server + "/upload", files=files)
+        response = self._session.post(f"{self.args.server}/upload", files=files)
         try:
             response.raise_for_status()
             data = response.json()
         except (requests.exceptions.HTTPError, ValueError) as error:
-            raise RuntimeError("Invalid response: {}\n{}".format(error, response.text))
+            raise RuntimeError(f"Invalid response: {response.text}") from error
 
         if 'success' not in data or not data['success']:
-            raise RuntimeError("Server does not indicate success: {}".format(data))
+            raise RuntimeError(f"Server does not indicate success: {data}")
 
 def parse_args(config):
     """
