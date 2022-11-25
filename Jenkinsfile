@@ -2,8 +2,6 @@ pipeline {
     agent { label 'docker' }
 
     environment {
-        MONETDB_IMPORT_GIT = credentials('monetdb-import-git')
-        MONETDB_EXPORT_DB = credentials('monetdb-export-db')
         GITLAB_TOKEN = credentials('export-exchange-gitlab-token')
         SCANNER_HOME = tool name: 'SonarQube Scanner 3', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
     }
