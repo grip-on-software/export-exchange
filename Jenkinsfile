@@ -26,6 +26,9 @@ pipeline {
         aborted {
             updateGitlabCommitStatus name: env.JOB_NAME, state: 'canceled'
         }
+        always {
+            archiveArtifacts 'schema/**/*.json'
+        }
     }
 
     stages {

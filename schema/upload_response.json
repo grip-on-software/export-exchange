@@ -1,0 +1,14 @@
+{
+    "$id": "https://gros.liacs.nl/schema/export-exchange/upload_response.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Export exchange file upload response",
+    "$ref": "#/$defs/upload_response",
+    "$defs": {
+        "upload_response": {
+            "success": {
+                "type": "boolean",
+                "description": "Whether the upload succeded."
+            }
+        }
+    }
+}

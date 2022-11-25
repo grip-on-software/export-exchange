@@ -1,0 +1,18 @@
+{
+    "$id": "https://gros.liacs.nl/schema/export-exchange/exchange.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Export exchange key request and response",
+    "$ref": "#/$defs/exchange",
+    "$defs": {
+        "exchange": {
+            "type": "object",
+            "properties": {
+                "pubkey": {
+                    "type": "string",
+                    "description": "Valid public key part of a GPG key."
+                }
+            },
+            "required": ["pubkey"]
+        }
+    }
+}
