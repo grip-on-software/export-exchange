@@ -4,6 +4,7 @@ pipeline {
     environment {
         MONETDB_IMPORT_GIT = credentials('monetdb-import-git')
         MONETDB_EXPORT_DB = credentials('monetdb-export-db')
+        GITLAB_TOKEN = credentials('export-exchange-gitlab-token')
         SCANNER_HOME = tool name: 'SonarQube Scanner 3', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
     }
     parameters {
@@ -15,7 +16,7 @@ pipeline {
         buildDiscarder(logRotator(numToKeepStr: '10'))
     }
     triggers {
-        gitlab(triggerOnPush: true, triggerOnMergeRequest: true, branchFilterType: 'All')
+        gitlab(triggerOnPush: true, triggerOnMergeRequest: true, branchFilterType: 'All', secretToken: env.GITLAB_TOKEN)
         cron(env.EXCHANGE_CRON)
     }
 
