@@ -26,6 +26,8 @@ pipeline {
             updateGitlabCommitStatus name: env.JOB_NAME, state: 'canceled'
         }
         always {
+            publishHTML([allowMissing: true, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'mypy-report/', reportFiles: 'index.html', reportName: 'Typing', reportTitles: ''])
+            junit allowEmptyResults: true, testResults: 'mypy-report/junit.xml'
             archiveArtifacts 'schema/**/*.json'
         }
     }
@@ -60,7 +62,7 @@ pipeline {
                     pysh 'python -m pylint exchange --exit-zero --reports=n --msg-template="{path}:{line}: [{msg_id}({symbol}), {obj}] {msg}" -d duplicate-code > pylint-report.txt'
                 }
                 withSonarQubeEnv('SonarQube') {
-                    pysh '${SCANNER_HOME}/bin/sonar-scanner -Dsonar.projectKey=export-exchange:$BRANCH_NAME -Dsonar.projectName="Export exchange $BRANCH_NAME"'
+                    sh '${SCANNER_HOME}/bin/sonar-scanner -Dsonar.projectKey=export-exchange:$BRANCH_NAME -Dsonar.projectName="Export exchange $BRANCH_NAME"'
                 }
             }
         }
