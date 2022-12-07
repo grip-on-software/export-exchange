@@ -17,16 +17,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import argparse
-import configparser
+from argparse import ArgumentParser, Namespace
+from configparser import RawConfigParser
 import os
 import tempfile
+from typing import Any, Dict, Optional, Sequence, Union, Type, TYPE_CHECKING
 import gpg
 from gpg_exchange import Exchange
 try:
     import keyring
 except ImportError:
-    keyring = None
+    if not TYPE_CHECKING:
+        keyring = None
 import requests
 from requests.auth import HTTPBasicAuth, HTTPDigestAuth
 
@@ -38,12 +40,12 @@ class Uploader:
     PGP_ARMOR_MIME = "application/pgp-encrypted"
     PGP_BINARY_MIME = "application/x-pgp-encrypted-binary"
 
-    AUTH_CLASSES = {
+    AUTH_CLASSES: Dict[str, Union[Type[HTTPBasicAuth], Type[HTTPDigestAuth]]] = {
         'basic': HTTPBasicAuth,
         'digest': HTTPDigestAuth
     }
 
-    def __init__(self, args):
+    def __init__(self, args: Namespace):
         self.args = args
         self._gpg = Exchange(home_dir=self.args.home_dir,
                              engine_path=self.args.engine,
@@ -52,31 +54,36 @@ class Uploader:
         self._session = requests.Session()
         self._session.verify = self.args.verify
 
-        if self.args.auth in self.AUTH_CLASSES:
-            if keyring and self.args.keyring:
-                password = keyring.get_password(self.args.keyring,
-                                                self.args.username)
+        self._name = str(self.args.name)
+        self._keyring = str(self.args.keyring)
+
+        auth_class = str(self.args.auth)
+        if auth_class in self.AUTH_CLASSES:
+            username = str(self.args.username)
+            if keyring and self._keyring:
+                password = keyring.get_password(self._keyring, username)
             else:
-                password = self.args.password
+                password = str(self.args.password)
 
-            auth = self.AUTH_CLASSES[self.args.auth]
-            self._session.auth = auth(self.args.username, password)
+            auth = self.AUTH_CLASSES[auth_class]
+            self._session.auth = auth(username, password)
 
-    def _get_passphrase(self, hint, desc, prev_bad, hook=None):
+    def _get_passphrase(self, hint: str, desc: str, prev_bad: int,
+                        hook: Optional[Any] = None) -> str:
         # pylint: disable=unused-argument
-        if keyring and self.args.keyring:
-            return keyring.get_password(self.args.keyring, 'privkey')
+        if keyring and self._keyring:
+            return keyring.get_password(self._keyring, 'privkey')
 
         return self.args.passphrase
 
-    def run(self):
+    def run(self) -> None:
         """
         Perform the verified key exchange and upload of files.
         """
 
         try:
             # Check if we have our own key and the public key for the server
-            self._gpg.find_key(self.args.name)
+            self._gpg.find_key(self._name)
             server_key = self._gpg.find_key(self.args.server_key)
         except KeyError:
             print("Exchanging keys...")
@@ -86,23 +93,24 @@ class Uploader:
         print("Uploading to server...")
         self.upload(server_key, self.args.files)
 
-        self._gpg = None
+        del self._gpg
 
-    def exchange(self):
+    def exchange(self) -> gpg.core.gpgme._gpgme_key:
         """
         Exchange public keys safely with the server.
         """
 
         try:
             # Retrieve existing key
-            key = self._gpg.find_key(self.args.name)
+            key = self._gpg.find_key(self._name)
             fpr = key.fpr
         except KeyError:
-            key = self._gpg.generate_key(self.args.name, self.args.email,
+            key = self._gpg.generate_key(self._name, self.args.email,
                                          comment="GROS upload key",
                                          passphrase=self.args.passphrase)
             fpr = key.fpr
 
+        pubkey: Union[str, bytes, gpg.Data] = ''
         with gpg.Data() as pubkey:
             pubkey = self._gpg.export_key(fpr)
             data = {
@@ -134,7 +142,8 @@ class Uploader:
 
         return key
 
-    def upload(self, server_key, filenames):
+    def upload(self, server_key: gpg.core.gpgme._gpgme_key,
+               filenames: Sequence[str]) -> None:
         """
         Upload files as indicated by a list of `filenames` to the server by
         encrypting them with the server public key object `server_key`.
@@ -159,10 +168,11 @@ class Uploader:
         except (requests.exceptions.HTTPError, ValueError) as error:
             raise RuntimeError(f"Invalid response: {response.text}") from error
 
-        if 'success' not in data or not data['success']:
+        if not isinstance(data, dict) or 'success' not in data or \
+            not data['success']:
             raise RuntimeError(f"Server does not indicate success: {data}")
 
-def parse_args(config):
+def parse_args(config: RawConfigParser) -> Namespace:
     """
     Parse command line arguments
     """
@@ -173,7 +183,7 @@ def parse_args(config):
     elif verify in ('false', ''):
         verify = False
 
-    parser = argparse.ArgumentParser(description='Upload files securely')
+    parser = ArgumentParser(description='Upload files securely')
     parser.add_argument('--server', default=config.get('upload', 'server'),
                         help='Upload server path')
     parser.add_argument('--verify', nargs='?', const=True, default=verify,
@@ -213,7 +223,7 @@ def parse_args(config):
 
     return parser.parse_args()
 
-def main():
+def main() -> None:
     """
     Main entry point.
     """
@@ -223,7 +233,7 @@ def main():
     else:
         config_file = 'settings.cfg'
 
-    config = configparser.RawConfigParser()
+    config = RawConfigParser()
     config.read(config_file)
     args = parse_args(config)
 

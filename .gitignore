@@ -1,3 +1,5 @@
 settings.cfg
 env/
+mypy-report/
+pylint-report.txt
 upload/
