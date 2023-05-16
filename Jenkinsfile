@@ -35,8 +35,8 @@ pipeline {
     stages {
         stage('Start') {
             when {
-                expression {
-                    currentBuild.rawBuild.getCause(hudson.triggers.TimerTrigger$TimerTriggerCause) == null
+                not {
+                    triggeredBy 'TimerTrigger'
                 }
             }
             steps {
@@ -72,9 +72,7 @@ pipeline {
                     environment name: 'CREATE_DUMP', value: 'true'
                     allOf {
                         branch 'master'
-                        expression {
-                            currentBuild.rawBuild.getCause(hudson.triggers.TimerTrigger$TimerTriggerCause) != null
-                        }
+                        triggeredBy 'TimerTrigger'
                         environment name: 'EXCHANGE_ENABLE', value: '1'
                     }
                 }
@@ -106,9 +104,7 @@ pipeline {
                     environment name: 'EXCHANGE_DUMP', value: 'true'
                     allOf {
                         branch 'master'
-                        expression {
-                            currentBuild.rawBuild.getCause(hudson.triggers.TimerTrigger$TimerTriggerCause) != null
-                        }
+                        triggeredBy 'TimerTrigger'
                         environment name: 'EXCHANGE_ENABLE', value: '1'
                     }
                 }
@@ -128,8 +124,8 @@ pipeline {
         }
         stage('Status') {
             when {
-                expression {
-                    currentBuild.rawBuild.getCause(hudson.triggers.TimerTrigger$TimerTriggerCause) == null
+                not {
+                    triggeredBy 'TimerTrigger'
                 }
             }
             steps {
