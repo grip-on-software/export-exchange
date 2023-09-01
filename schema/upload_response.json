@@ -5,9 +5,12 @@
     "$ref": "#/$defs/upload_response",
     "$defs": {
         "upload_response": {
-            "success": {
-                "type": "boolean",
-                "description": "Whether the upload succeded."
+            "type": "object",
+            "properties": {
+                "success": {
+                    "type": "boolean",
+                    "description": "Whether the upload succeded."
+                }
             }
         }
     }
