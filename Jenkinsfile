@@ -28,7 +28,7 @@ pipeline {
         always {
             publishHTML([allowMissing: true, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'mypy-report/', reportFiles: 'index.html', reportName: 'Typing', reportTitles: ''])
             junit allowEmptyResults: true, testResults: 'mypy-report/junit.xml'
-            archiveArtifacts 'schema/**/*.json'
+            archiveArtifacts 'openapi.json,schema/**/*.json'
         }
     }
 

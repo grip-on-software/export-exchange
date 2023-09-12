@@ -1,0 +1,56 @@
+{
+    "$id": "https://gros.liacs.nl/schema/export-exchange/error_response.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Export exchange error response",
+    "$ref": "#/$defs/error_response",
+    "$defs": {
+        "error_response": {
+            "type": "object",
+            "properties": {
+                "success": {
+                    "type": "boolean",
+                    "description": "Indication that the exchange was not successful.",
+                    "const": false
+                },
+                "error": {
+                    "type": "object",
+                    "description": "Information about the error during the exchange attempt.",
+                    "properties": {
+                        "status": {
+                            "type": "string",
+                            "pattern": "^\\d\\d\\d \\w+$",
+                            "description": "HTTP status line for the error."
+                        },
+                        "message": {
+                            "type": "string",
+                            "description": "Description of the error."
+                        },
+                        "traceback": {
+                            "oneOf": [
+                                {"type": "null"},
+                                {"type": "string"}
+                            ],
+                            "description": "Python traceback lines of locations in source code where the error took place, if tracebacks are shown."
+                        }
+                    },
+                    "required": ["status", "message"]
+                },
+                "version": {
+                    "type": "object",
+                    "description": "Version numbers of components involved in the exchange on the server side.",
+                    "properties": {
+                        "upload": {
+                            "type": "string",
+                            "description": "Version number of the upload server module."
+                        },
+                        "cherrypy": {
+                            "type": "string",
+                            "description": "Version number of the CherryPy server module."
+                        }
+                    }
+                }
+            },
+            "required": ["success", "error"]
+        }
+    }
+}

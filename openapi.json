@@ -1,0 +1,144 @@
+{
+    "openapi": "3.0.3",
+    "info": {
+        "title": "Export exchange API",
+        "description": "API for Grip on Software export exchange upload.",
+        "version": "1.0.0",
+        "contact": {
+            "name": "Grip on Software",
+            "url": "https://gros.liacs.nl"
+        },
+        "license": {
+            "name": "Apache License, Version 2.0",
+            "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
+        }
+    },
+    "paths": {
+        "/exchange": {
+            "post": {
+                "summary": "Exchange publish keys",
+                "description": "Exchange publish keys of a known exchange client and the upload server.",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "examples": {
+                                "pubkey": "-----BEGIN PGP PUBLIC KEY BLOCK-----\n\nmDMEXEcE6RYJKwYBBAHaRw8BAQdArjWwk3FAqyiFbFBKT4TzXcVBqPTB3gmzlC/U\nb7O1u120JkFsaWNlIExvdmVsYWNlIDxhbGljZUBvcGVucGdwLmV4YW1wbGU+iJAE\nExYIADgCGwMFCwkIBwIGFQoJCAsCBBYCAwECHgECF4AWIQTrhbtfozp14V6UTmPy\nMVUMT0fjjgUCXaWfOgAKCRDyMVUMT0fjjukrAPoDnHBSogOmsHOsd9qGsiZpgRnO\ndypvbm+QtXZqth9rvwD9HcDC0tC+PHAsO7OTh1S1TC9RiJsvawAfCPaQZoed8gK4\nOARcRwTpEgorBgEEAZdVAQUBAQdAQv8GIa2rSTzgqbXCpDDYMiKRVitCsy203x3s\nE9+eviIDAQgHiHgEGBYIACAWIQTrhbtfozp14V6UTmPyMVUMT0fjjgUCXEcE6QIb\nDAAKCRDyMVUMT0fjjlnQAQDFHUs6TIcxrNTtEZFjUFm1M0PJ1Dng/cDW4xN80fsn\n0QEA22Kr7VkCjeAEC08VSTeV+QFsmz55/lntWkwYWhmvOgE=\n=iIGO\n-----END PGP PUBLIC KEY BLOCK-----"
+                            },
+                            "schema": {
+                                "$ref": "schema/export-exchange/exchange.json#/$defs/exchange"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Key exchange success",
+                        "content": {
+                            "application/json": {
+                                "examples": {
+                                    "pubkey": {
+                                        "pubkey": "-----BEGIN PGP PUBLIC KEY BLOCK-----\n\nmDMEXEcE6RYJKwYBBAHaRw8BAQdArjWwk3FAqyiFbFBKT4TzXcVBqPTB3gmzlC/U\nb7O1u120JkFsaWNlIExvdmVsYWNlIDxhbGljZUBvcGVucGdwLmV4YW1wbGU+iJAE\nExYIADgCGwMFCwkIBwIGFQoJCAsCBBYCAwECHgECF4AWIQTrhbtfozp14V6UTmPy\nMVUMT0fjjgUCXaWfOgAKCRDyMVUMT0fjjukrAPoDnHBSogOmsHOsd9qGsiZpgRnO\ndypvbm+QtXZqth9rvwD9HcDC0tC+PHAsO7OTh1S1TC9RiJsvawAfCPaQZoed8gK4\nOARcRwTpEgorBgEEAZdVAQUBAQdAQv8GIa2rSTzgqbXCpDDYMiKRVitCsy203x3s\nE9+eviIDAQgHiHgEGBYIACAWIQTrhbtfozp14V6UTmPyMVUMT0fjjgUCXEcE6QIb\nDAAKCRDyMVUMT0fjjlnQAQDFHUs6TIcxrNTtEZFjUFm1M0PJ1Dng/cDW4xN80fsn\n0QEA22Kr7VkCjeAEC08VSTeV+QFsmz55/lntWkwYWhmvOgE=\n=iIGO\n-----END PGP PUBLIC KEY BLOCK-----"
+                                    }
+                                },
+                                "schema": {
+                                    "$ref": "schema/export-exchange/exchange.json#/$defs/exchange"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Public key error",
+                        "content": {
+                            "application/json": {
+                                "examples": {
+                                    "pubkey_error": {
+                                        "value": {
+                                            "ok": false,
+                                            "error": {
+                                                "status": "500 Internal Server Error",
+                                                "message": "Must be an acceptable public key"
+                                            },
+                                            "version": {
+                                                "upload": "1"
+                                            }
+                                        }
+                                    }
+                                },
+                                "schema": {
+                                    "$ref": "schema/export-exchange/error_response.json#/$defs/error_response"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/upload": {
+            "post": {
+                "summary": "Upload files",
+                "description": "Upload files to the server, encrypted with a known and validated GPG key of the client.",
+                "requestBody": {
+                    "required": true,
+                    "description": "Files uploaded in the form data should have either `application/pgp-encrypted` or `application/x-pgp-encrypted-binary` MIME type to indicate if the file is armored as a binary file or not. Files must have an acceptable file name configured by the server.",
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "files": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "binary"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Upload success",
+                        "content": {
+                            "application/json": {
+                                "examples": {
+                                    "upload_success": {
+                                        "success": true
+                                    }
+                                },
+                                "schema": {
+                                    "$ref": "schema/export-exchange/upload_response.json#/$defs/upload_response"
+                                }
+                            }
+                    },
+                    "500": {
+                        "description": "Upload error",
+                        "content": {
+                            "application/json": {
+                                "examples": {
+                                    "upload_error": {
+                                        "value": {
+                                            "ok": false,
+                                            "error": {
+                                                "status": "500 Internal Server Error",
+                                                "message": "No name provided for file #0"
+                                            },
+                                            "version": {
+                                                "upload": "1"
+                                            }
+                                        }
+                                    }
+                                },
+                                "schema": {
+                                    "$ref": "schema/export-exchange/error_response.json#/$defs/error_response"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
