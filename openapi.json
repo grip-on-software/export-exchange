@@ -16,8 +16,8 @@
     "paths": {
         "/exchange": {
             "post": {
-                "summary": "Exchange publish keys",
-                "description": "Exchange publish keys of a known exchange client and the upload server.",
+                "summary": "Exchange public keys",
+                "description": "Exchange public keys of a known export client and the upload server.",
                 "requestBody": {
                     "required": true,
                     "content": {
