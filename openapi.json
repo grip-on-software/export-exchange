@@ -60,7 +60,7 @@
                                 "examples": {
                                     "pubkey_error": {
                                         "value": {
-                                            "ok": false,
+                                            "success": false,
                                             "error": {
                                                 "status": "500 Internal Server Error",
                                                 "message": "Must be an acceptable public key"
@@ -129,7 +129,7 @@
                                 "examples": {
                                     "upload_error": {
                                         "value": {
-                                            "ok": false,
+                                            "success": false,
                                             "error": {
                                                 "status": "500 Internal Server Error",
                                                 "message": "No name provided for file #0"

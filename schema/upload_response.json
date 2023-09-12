@@ -12,7 +12,8 @@
                     "description": "Whether the upload succeded.",
                     "const": true
                 }
-            }
+            },
+            "required": ["success"]
         }
     }
 }
