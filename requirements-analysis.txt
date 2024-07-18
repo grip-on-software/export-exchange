@@ -1,0 +1,4 @@
+pylint==3.2.2
+lxml==5.2.2
+mypy==1.10.0
+types-requests>=2.27.27

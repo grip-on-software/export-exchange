@@ -118,7 +118,7 @@ pipeline {
             }
             steps {
                 withCredentials([file(credentialsId: 'exchange-config', variable: 'GATHERER_SETTINGS_FILE')]) {
-                    sh 'python exchange/upload.py --files export/dump.tar.gz'
+                    sh 'gros-export-exchange --files export/dump.tar.gz'
                 }
             }
         }

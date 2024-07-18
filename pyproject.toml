@@ -1,0 +1,53 @@
+[project]
+name = "gros-export-exchange"
+version = "0.0.3"
+description = "Tools for securely uploading files via HTTPS and GPG"
+readme = "README.md"
+authors = [{name = "Leon Helwerda", email = "l.s.helwerda@liacs.leidenuniv.nl"}]
+license = {text = "Apache 2.0"}
+requires-python = ">=3.8"
+dependencies = [
+    "gpg_exchange==0.0.7",
+    "requests==2.31.0"
+]
+classifiers=[
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Topic :: Communications",
+    "Topic :: Security :: Cryptography",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+keywords = ["gpg encryption", "secure upload"]
+
+[project.scripts]
+gros-export-exchange = "exchange.__main__:main"
+
+[project.urls]
+"Homepage" = "https://gros.liacs.nl"
+"PyPI" = "https://pypi.python.org/pypi/gros-export-exchange"
+"Source Code" = "https://github.com/grip-on-software/export-exchange"
+"Issues" = "https://github.com/grip-on-software/export-exchange/issues"
+"Pull Requests" = "https://github.com/grip-on-software/export-exchange/pulls"
+"CI: GitHub Actions" = "https://github.com/grip-on-software/export-exchange/actions"
+"CI: Coveralls" = "https://coveralls.io/github/grip-on-software/export-exchange?branch=master"
+"CI: SonarCloud" = "https://sonarcloud.io/project/overview?id=grip-on-software_export-exchange"
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["exchange"]
+
+[tool.setuptools.package-data]
+"exchange" = ["py.typed"]
+
+[tool.mypy]
+mypy_path = "typeshed"

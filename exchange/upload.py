@@ -3,7 +3,7 @@ Secure PGP file upload.
 
 Copyright 2017-2020 ICTU
 Copyright 2017-2022 Leiden University
-Copyright 2017-2023 Leon Helwerda
+Copyright 2017-2024 Leon Helwerda
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from argparse import ArgumentParser, Namespace
-from configparser import RawConfigParser
+from argparse import Namespace
+import logging
 import os
 import tempfile
 from typing import Any, Dict, Optional, Sequence, Union, Type, TYPE_CHECKING
@@ -87,11 +87,11 @@ class Uploader:
             self._gpg.find_key(self._name)
             server_key = self._gpg.find_key(self.args.server_key)
         except KeyError:
-            print("Exchanging keys...")
+            logging.info("Exchanging keys...")
             server_key = self.exchange()
 
-        print(f"Server key: {server_key.fpr}")
-        print("Uploading to server...")
+        logging.info("Server key: %s", server_key.fpr)
+        logging.info("Uploading to server...")
         self.upload(server_key, self.args.files)
 
         del self._gpg
@@ -115,7 +115,8 @@ class Uploader:
         with gpg.Data() as pubkey:
             pubkey = self._gpg.export_key(fpr)
             data = {
-                'pubkey': pubkey
+                'pubkey': pubkey.decode('utf-8') \
+                    if isinstance(pubkey, bytes) else str(pubkey)
             }
 
         response = self._session.post(f"{self.args.server}/exchange", json=data)
@@ -129,14 +130,12 @@ class Uploader:
         try:
             # Decrypt the encrypted message to import the server's public key.
             # Do not verify the signature since we don't have it currently.
-            server_key = self._gpg.decrypt_text(str(data['pubkey']),
+            encoded_pubkey = str(data['pubkey']).encode('utf-8')
+            server_key = self._gpg.decrypt_text(encoded_pubkey,
                                                 verify=False)
-            key, result = self._gpg.import_key(server_key)
+            key = self._gpg.import_key(server_key)[0]
         except (gpg.errors.GpgError, ValueError) as error:
             raise ValueError('Data could not be decrypted') from error
-
-        if result.imported != 1:
-            raise RuntimeError("Invalid public key from server")
 
         if key.fpr != self.args.server_key:
             raise RuntimeError(f"Received incorrect key: {key.fpr}")
@@ -152,6 +151,7 @@ class Uploader:
 
         file_field = "files"
         files = []
+        temp_files = []
         for filename in filenames:
             with open(filename, 'rb') as plaintext:
                 upload_file = tempfile.TemporaryFile()
@@ -161,8 +161,11 @@ class Uploader:
                 upload_file.seek(0, os.SEEK_SET)
                 files.append((file_field,
                               (filename, upload_file, self.PGP_BINARY_MIME)))
+                temp_files.append(upload_file)
 
         response = self._session.post(f"{self.args.server}/upload", files=files)
+        for temp_file in temp_files:
+            temp_file.close()
         try:
             response.raise_for_status()
             data = response.json()
@@ -172,74 +175,3 @@ class Uploader:
         if not isinstance(data, dict) or 'success' not in data or \
             not data['success']:
             raise RuntimeError(f"Server does not indicate success: {data}")
-
-def parse_args(config: RawConfigParser) -> Namespace:
-    """
-    Parse command line arguments
-    """
-
-    verify = config.get('upload', 'verify')
-    if verify == 'true':
-        verify = True
-    elif verify in ('false', ''):
-        verify = False
-
-    parser = ArgumentParser(description='Upload files securely')
-    parser.add_argument('--server', default=config.get('upload', 'server'),
-                        help='Upload server path')
-    parser.add_argument('--verify', nargs='?', const=True, default=verify,
-                        help='Verify server CA chain or path to CA to verify')
-    parser.add_argument('--no-verify', dest='verify', action='store_false',
-                        help='Disable host verification')
-
-    parser.add_argument('--auth', default=config.get('upload', 'auth'),
-                        choices=Uploader.AUTH_CLASSES,
-                        help='Authentication method to log in to the server')
-    parser.add_argument('--no-auth', dest='auth', action='store_false',
-                        help='Disable HTTP authentication')
-    parser.add_argument('--username', default=config.get('upload', 'username'),
-                        help='Username to log in to the server')
-    parser.add_argument('--password', default=config.get('upload', 'password'),
-                        help='Password to log in to the server')
-
-    parser.add_argument('--engine', default=config.get('upload', 'engine'),
-                        help='GPG engine path')
-    parser.add_argument('--home-dir', default=config.get('upload', 'home_dir'),
-                        dest='home_dir', help='Configuration directory for GPG')
-
-    parser.add_argument('--keyring', default=config.get('upload', 'keyring'),
-                        help='Name of keyring containing authentication')
-    parser.add_argument('--server-key', dest='server_key',
-                        default=config.get('upload', 'server_key'),
-                        help='Fingerprint of server public key to verify')
-    parser.add_argument('--name', default=config.get('upload', 'name'),
-                        help='Name to use in client key pair')
-    parser.add_argument('--email', default=config.get('upload', 'email'),
-                        help='Email to use in client key pair')
-    parser.add_argument('--passphrase',
-                        default=config.get('upload', 'passphrase'),
-                        help='Passphrase to use to protect client private key')
-
-    parser.add_argument('--files', nargs='*', help='Files to upload')
-
-    return parser.parse_args()
-
-def main() -> None:
-    """
-    Main entry point.
-    """
-
-    if 'GATHERER_SETTINGS_FILE' in os.environ:
-        config_file = os.environ['GATHERER_SETTINGS_FILE']
-    else:
-        config_file = 'settings.cfg'
-
-    config = RawConfigParser()
-    config.read(config_file)
-    args = parse_args(config)
-
-    uploader = Uploader(args)
-    uploader.run()
-
-if __name__ == "__main__":
-    main()
