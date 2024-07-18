@@ -141,6 +141,7 @@ performs multiple checks: unit tests, typing, lint and version number
 consistency. The release files are also published on 
 [GitHub](https://github.com/grip-on-software/export-exchange/releases) and from 
 there are archived on [Zenodo](https://zenodo.org/doi/10.5281/zenodo.12773658). 
+Noteworthy changes to the module are added to the [changelog](CHANGELOG.md).
 
 ## License
 
