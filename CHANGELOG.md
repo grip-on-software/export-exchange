@@ -22,7 +22,7 @@ and we adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   methods are handled better.
 - Upload left temporary files that were not closed.
 
-## [0.0.3] - 2024-06-25
+## [0.0.3] - 2024-07-18
 
 ### Added
 
