@@ -26,6 +26,9 @@ classifiers=[
 ]
 keywords = ["gpg encryption", "secure upload"]
 
+[project.optional-dependencies]
+keyring = ["keyring==25.2.1"]
+
 [project.scripts]
 gros-export-exchange = "exchange.__main__:main"
 

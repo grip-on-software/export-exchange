@@ -10,6 +10,8 @@ and we adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Added
 
 - Unit tests added.
+- Optional `keyring` dependency can be installed with the extra `keyring`, 
+  using `pip install gros-export-exchange[keyring]`.
 
 ### Changed
 

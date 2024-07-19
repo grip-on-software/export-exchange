@@ -25,6 +25,9 @@ packaged program from PyPI, run the following command:
 pip install gros-export-exchange
 ```
 
+In order to install `keyring` which is able to store authentication passwords 
+and GPG passphrases, use `pip install gros-export-exchange[keyring]`.
+
 Another option is to build the program from this repository, which allows using 
 the most recent development code. Run `make setup` to install the dependencies. 
 The uploader itself may then be installed with `make install`, which places the 
@@ -68,8 +71,9 @@ settings file, but command-line arguments may override them:
 - `auth`: Authentication class to use for the endpoint. This can be `basic` or 
   `digest`. The reference implementation of the upload endpoint uses `digest`.
 - `keyring`: Name of a keyring domain to use to retrieve the password for the 
-  upload user to authenticate with. If left empty, then the password must be 
-  provided via the `password` setting or argument, which is less secure.
+  upload user to authenticate with. If left empty or the `keyring` dependency 
+  is not installed, then the password must be provided via the `password` 
+  setting or argument, which is less secure.
 - `username`: Username to authenticate with at the endpoint.
 - `password`: Password to authenticate with at the endpoint. If the `keyring` 
   is provided, then this is ignored.
