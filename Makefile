@@ -1,3 +1,5 @@
+PACKAGE=gros-export-exchange
+MODULE=exchange
 COVERAGE=coverage
 MYPY=mypy
 PIP=python -m pip
@@ -81,7 +83,7 @@ get_version: get_toml_version get_init_version get_sonar_version get_citation_ve
 
 .PHONY: get_init_version
 get_init_version:
-	$(eval INIT_VERSION=v$(shell grep __version__ exchange/__init__.py | sed -E "s/__version__ = .([0-9.]+)./\\1/"))
+	$(eval INIT_VERSION=v$(shell grep __version__ $(MODULE)/__init__.py | sed -E "s/__version__ = .([0-9.]+)./\\1/"))
 	$(info Version in __init__.py: $(INIT_VERSION))
 	if [ -z "${INIT_VERSION}" ]; then \
 		echo "Could not parse version"; \
@@ -129,4 +131,4 @@ clean:
 	# Typing coverage and Pylint
 	$(RM) .mypy_cache mypy-report/ pylint-report.txt
 	# Pip and distribution
-	$(RM) src/ build/ dist/ gros-server.egg-info/
+	$(RM) src/ build/ dist/ $(PACKAGE).egg-info/
